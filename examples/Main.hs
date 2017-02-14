@@ -4,21 +4,28 @@
 
 module Main where
 
-import Control.Natural
-import Control.Remote.Haxl
-import Control.Remote.Haxl.Packet.Weak as WP
-import Control.Remote.Haxl.Packet.Applicative as AP
-import Control.Applicative
+import           Control.Natural
+import           Control.Remote.Haxl             as M
+import           Control.Remote.Haxl.Applicative as A
+import           Control.Remote.Haxl.Packet.Weak as WP
+import           Control.Remote.Haxl.Packet.Applicative as AP
+
 
 data Procedure :: * -> * where
    Say :: String -> Procedure ()
    Temperature :: Procedure Int
 
-say :: String -> RemoteHaxlMonad Procedure ()
-say s = query (Say s)
+sayA :: String -> RemoteHaxlApplicative Procedure ()
+sayA  s = A.query (Say s)
 
-temperature :: RemoteHaxlMonad Procedure Int
-temperature = query Temperature
+temperatureA :: RemoteHaxlApplicative Procedure Int
+temperatureA  = A.query Temperature
+
+sayM :: String -> RemoteHaxlMonad Procedure ()
+sayM s = M.query (Say s)
+
+temperatureM :: RemoteHaxlMonad Procedure Int
+temperatureM = M.query Temperature
 
 
 --Server Side Functions
@@ -42,50 +49,75 @@ runAP (AP.Pure a) = do
                        return a
 ---------------------------------------------------------
 
-sendWeak :: RemoteHaxlMonad Procedure a -> IO a
-sendWeak = unwrapNT $ runHaxlMonad $ wrapNT (\pkt -> do putStrLn "-----"; runWP pkt)
+sendWeakM :: RemoteHaxlMonad Procedure a -> IO a
+sendWeakM = unwrapNT $ runHaxlMonad $ wrapNT (\pkt -> do putStrLn "-----"; runWP pkt)
 
---sendApp :: RemoteHaxlMonad Procedure a -> IO a
---sendApp = unwrapNT $ runHaxlMonad $ wrapNT (\pkt -> do putStrLn "-----"; runAP pkt)
+sendAppM :: RemoteHaxlMonad Procedure a -> IO a
+sendAppM = unwrapNT $ runHaxlMonad $ wrapNT (\pkt -> do putStrLn "-----"; runAP pkt)
+
+
+sendWeakA :: RemoteHaxlApplicative Procedure a -> IO a
+sendWeakA = unwrapNT $ runHaxlApplicative $ wrapNT (\pkt -> do putStrLn "-----"; runWP pkt)
+
+sendAppA :: RemoteHaxlApplicative Procedure a -> IO a
+sendAppA = unwrapNT $ runHaxlApplicative $ wrapNT (\pkt -> do putStrLn "-----"; runAP pkt)
 
 ---------------------------------------------------------
 
 main :: IO ()
 main = do
 
-        putStrLn "WeakSend\n"
-        runTest $ wrapNT sendWeak
+        putStrLn "WeakSendM\n"
+        runTestM $ wrapNT sendWeakM
 
---        putStrLn "\nAppSend\n"
---        runTest $ wrapNT sendApp
+        putStrLn "\nAppSendM\n"
+        runTestM $ wrapNT sendAppM
+
+        putStrLn "WeakSendA\n"
+        runTestA $ wrapNT sendWeakA
+
+        putStrLn "\nAppSendA\n"
+        runTestA $ wrapNT sendAppA
 
 --Run Test Suite
-runTest :: (RemoteHaxlMonad Procedure :~> IO)-> IO()
-runTest (NT f) = do
-               f test
+runTestM :: (RemoteHaxlMonad Procedure :~> IO)-> IO ()
+runTestM (NT f) = do
+               f testM
                f testBind
-               f testApp
+               f testAppM
 
-
-
+runTestA :: (RemoteHaxlApplicative Procedure :~> IO) -> IO ()
+runTestA (NT f) = do
+               f testA
+               t <- f testAppA
+               print t
 -- Original test case
-test :: RemoteHaxlMonad Procedure ()
-test = do
-         say "Howdy doodly do"
-         say "How about a muffin?"
-         t <- temperature
-         say (show t ++ "F")
+testM :: RemoteHaxlMonad Procedure ()
+testM = do
+         sayM "Howdy doodly do"
+         sayM "How about a muffin?"
+         t <- temperatureM
+         sayM (show t ++ "F")
 
 -- Test bind
 testBind :: RemoteHaxlMonad Procedure ()
-testBind = say "one" >> say "two" >> temperature >>= say . ("Temperature: " ++) .show
+testBind = sayM "one" >> sayM "two" >> temperatureM >>= sayM . ("Temperature: " ++) .show
 
 
-testApp :: RemoteHaxlMonad Procedure ()
-testApp = do
-          r<- add <$> temperature<*>temperature <*> temperature
-          say (show r)
+testAppM :: RemoteHaxlMonad Procedure ()
+testAppM = do
+          r<- add <$> temperatureM<*>temperatureM <*> temperatureM
+          sayM (show r)
      where
             add :: Int -> Int -> Int -> Int
             add x y z= x + y + z
 
+
+testA :: RemoteHaxlApplicative Procedure ()
+testA =     sayA "Howdy doodly do" *> sayA "How about a muffin?"
+         
+testAppA :: RemoteHaxlApplicative Procedure Int
+testAppA = (add <$> temperatureA <*> temperatureA <*> temperatureA)
+    where
+            add :: Int -> Int -> Int -> Int
+            add x y z = x + y + z
