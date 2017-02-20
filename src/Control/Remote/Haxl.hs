@@ -33,8 +33,9 @@ import           Control.Remote.Haxl.Packet.Weak as Weak
 import           Control.Remote.Haxl.Types as T
 import           Control.Applicative
 
+import Control.Monad
 import Control.Natural
-
+import Debug.Trace
 
 -- | promote a procedure into the remote monad
 query :: q a -> RemoteHaxlMonad q a
@@ -78,11 +79,11 @@ runApplicativeMonad (NT rf) = wrapNT $ \ p -> do
     rf $ pk $ h -- should we stub out the call with only 'Pure'?
     return r
   where
+    
     go2 :: forall a . RemoteHaxlMonad q a -> StateT (T.RemoteHaxlApplicative q ()) m a
     go2 (Appl app)   = go app
     go2 (Bind app k) = go2 app >>= \ a -> go2 (k a)
-    go2 (Ap' g h)    = go2 g <*> go2 h
-
+    go2 v@(Ap' _ _)  = go2 (helper v)
     go :: forall a .  T.RemoteHaxlApplicative q a -> StateT (T.RemoteHaxlApplicative q ()) m a
     go ap = case superApplicative ap of
                 Nothing -> do
@@ -105,3 +106,10 @@ runApplicativeMonad (NT rf) = wrapNT $ \ p -> do
     pk (T.Pure a)      = A.Pure a
     pk (T.Query q)     = A.Query  q
     pk (T.Ap g h)      = A.Zip ($) (pk g) (pk h)
+
+    helper:: RemoteHaxlMonad q a -> RemoteHaxlMonad q a
+    helper (Ap' x@(Ap' _ _) y@(Ap' _ _))    = trace "1" $ helper x <*> helper y
+    helper (Ap' (Bind m1 k1) (Bind m2 k2) ) = trace "2" $ liftA2 (,)  m1  m2 >>= \(x1,x2) ->helper ( k1 x1 <*> k2 x2) 
+    helper (Ap' (Bind m1 k1) app)           = trace "3" $ liftA2 (,) m1 (helper app) >>= \(x1,x2) -> helper (k1 x1 <*> (pure x2))
+    helper (Ap' app   (Bind m1 k1))         = trace "4" $ liftA2 (,) (helper app) m1 >>= \(x1,x2) -> helper (pure x1 <*> k1 x2)
+    helper x = x
