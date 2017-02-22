@@ -75,7 +75,7 @@ runWeakMonad = runMonadSkeleton . A.runHaxlWeakApplicative
 --   including over some monadic binds.
 runApplicativeMonad :: forall m q . (Monad m) => (A.ApplicativePacket q :~> m) -> (RemoteHaxlMonad q :~> m)
 runApplicativeMonad (NT rf) = wrapNT $ \ p -> do
-    (r,h) <- runStateT (go2 p) (pure ())
+    (r,h) <- runStateT (go2 (helper p)) (pure ())
     rf $ pk $ h -- should we stub out the call with only 'Pure'?
     return r
   where
@@ -83,7 +83,7 @@ runApplicativeMonad (NT rf) = wrapNT $ \ p -> do
     go2 :: forall a . RemoteHaxlMonad q a -> StateT (T.RemoteHaxlApplicative q ()) m a
     go2 (Appl app)   = go app
     go2 (Bind app k) = go2 app >>= \ a -> go2 (k a)
-    go2 v@(Ap' _ _)  = go2 (helper v)
+    go2 (Ap' x y)  = go2 x <*> go2 y
     go :: forall a .  T.RemoteHaxlApplicative q a -> StateT (T.RemoteHaxlApplicative q ()) m a
     go ap = case superApplicative ap of
                 Nothing -> do
@@ -109,7 +109,8 @@ runApplicativeMonad (NT rf) = wrapNT $ \ p -> do
 
     helper:: RemoteHaxlMonad q a -> RemoteHaxlMonad q a
     helper (Ap' x@(Ap' _ _) y@(Ap' _ _))    = trace "1" $ helper x <*> helper y
-    helper (Ap' (Bind m1 k1) (Bind m2 k2) ) = trace "2" $ liftA2 (,)  m1  m2 >>= \(x1,x2) ->helper ( k1 x1 <*> k2 x2) 
-    helper (Ap' (Bind m1 k1) app)           = trace "3" $ liftA2 (,) m1 (helper app) >>= \(x1,x2) -> helper (k1 x1 <*> (pure x2))
-    helper (Ap' app   (Bind m1 k1))         = trace "4" $ liftA2 (,) (helper app) m1 >>= \(x1,x2) -> helper (pure x1 <*> k1 x2)
-    helper x = x
+    helper (Ap' (Bind m1 k1) (Bind m2 k2) ) = trace "2" $ liftA2 (,)  (helper m1) (helper m2) >>= \(x1,x2) ->helper ( k1 x1) <*> helper (k2 x2) 
+    helper (Ap' (Bind m1 k1) app)           = trace "3" $ liftA2 (,) (helper m1) (helper app) >>= \(x1,x2) -> helper (k1 x1) <*> (pure x2)
+    helper (Ap' (Ap' app (Bind m1 k1))   (Bind m2 k2))         = trace "4" $ liftA3 (,,) (helper app) (helper m1) (helper  m2) >>= \(x1,x2,x3) -> (pure x1 <*> k1 x2) <*> helper (k2 x3)
+    helper (Bind m k) = trace "5" $ (helper m) >>= \ x -> helper (k x)
+    helper x = x   

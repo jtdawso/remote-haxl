@@ -30,7 +30,7 @@ data RemoteHaxlMonad  (q :: * -> *) a where
    Appl        :: RemoteHaxlApplicative q a -> RemoteHaxlMonad q a
    Bind        :: RemoteHaxlMonad q a -> (a -> RemoteHaxlMonad q b) -> RemoteHaxlMonad q b
    Ap'         :: RemoteHaxlMonad q (a -> b) -> RemoteHaxlMonad q a -> RemoteHaxlMonad q b
-  
+
 instance  Functor (RemoteHaxlMonad q) where
   fmap f m = pure f <*> m
 
@@ -49,7 +49,7 @@ data RemoteHaxlApplicative (q:: * -> *) a where
    Query :: q a -> RemoteHaxlApplicative q a
    Ap        :: RemoteHaxlApplicative q (a -> b) -> RemoteHaxlApplicative q a -> RemoteHaxlApplicative q b
    Pure      :: a   -> RemoteHaxlApplicative q a  
-  
+
 instance Functor (RemoteHaxlApplicative q) where
   fmap f g = pure f <*> g
 

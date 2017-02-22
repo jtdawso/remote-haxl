@@ -12,8 +12,9 @@ import           Control.Remote.Haxl.Packet.Applicative as AP
 
 
 data Procedure :: * -> * where
-   Say :: String -> Procedure ()
-   Temperature :: Procedure Int
+   Say          :: String -> Procedure ()
+   Temperature  :: Procedure Int
+   Temperature2 :: Procedure Int 
 
 sayA :: String -> RemoteHaxlApplicative Procedure ()
 sayA  s = A.query (Say s)
@@ -21,19 +22,31 @@ sayA  s = A.query (Say s)
 temperatureA :: RemoteHaxlApplicative Procedure Int
 temperatureA  = A.query Temperature
 
+temperature2A :: RemoteHaxlApplicative Procedure Int
+temperature2A  = A.query Temperature2
+
 sayM :: String -> RemoteHaxlMonad Procedure ()
 sayM s = M.query (Say s)
 
 temperatureM :: RemoteHaxlMonad Procedure Int
 temperatureM = M.query Temperature
 
+temperature2M :: RemoteHaxlMonad Procedure Int
+temperature2M = M.query Temperature2
+
 
 --Server Side Functions
 ---------------------------------------------------------
+
 runWP ::  WeakPacket Procedure a -> IO a
 runWP (WP.Query Temperature) = do
                                  putStrLn "Temp Call"
                                  return 42
+
+runWP (WP.Query Temperature2) = do
+                                 putStrLn "Temp2 Call"
+                                 return 52
+                                 
 runWP (WP.Query (Say s))     = print s
 ---------------------------------------------------------
 
@@ -42,6 +55,10 @@ runAP (AP.Query (Say s)) = print s
 runAP (AP.Query Temperature) =do
                                  putStrLn "Temp Call"
                                  return 42
+runAP (AP.Query Temperature2) = do
+                                 putStrLn "Temp2 Call"
+                                 return 52
+
 runAP (AP.Zip f g h) = do
              f <$> runAP g <*> runAP h
 runAP (AP.Pure a) = do
@@ -85,6 +102,8 @@ runTestM (NT f) = do
                f testM
                f testBind
                f testAppM
+               r <- f haxlExample
+               print r
 
 runTestA :: (RemoteHaxlApplicative Procedure :~> IO) -> IO ()
 runTestA (NT f) = do
@@ -121,3 +140,15 @@ testAppA = (add <$> temperatureA <*> temperatureA <*> temperatureA)
     where
             add :: Int -> Int -> Int -> Int
             add x y z = x + y + z
+
+
+haxlExample :: RemoteHaxlMonad Procedure (Int,Int)
+haxlExample = do
+               (,) <$>  (temperature2M >>= f) <*> (temperatureM >>= f)
+
+    where
+         f a = if a > 50 then
+                    return 1
+                 else
+                    return 0
+        
