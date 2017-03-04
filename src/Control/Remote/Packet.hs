@@ -3,21 +3,21 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 {-|
-Module:      Control.Remote.Monad.Packet
+Module:      Control.Remote.Packet
 Copyright:   (C) 2016, The University of Kansas
 License:     BSD-style (see the file LICENSE)
-Maintainer:  Andy Gill
+Maintainer:  Justin Dawson
 Stability:   Alpha
 Portability: GHC
 -}
 
-module Control.Remote.Haxl.Packet
+module Control.Remote.Packet
   (
     Promote(..)
   , promoteToApplicative
   ) where
-import qualified Control.Remote.Haxl.Packet.Weak as Weak
-import qualified Control.Remote.Haxl.Packet.Applicative as A
+import qualified Control.Remote.Packet.Weak as Weak
+import qualified Control.Remote.Packet.Applicative as A
 import           Control.Natural
 import           Control.Applicative
 

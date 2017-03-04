@@ -5,7 +5,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
 {-|
-Module:      Control.Remote.Haxl.Packet.Weak
+Module:      Control.Remote.Packet.Weak
 Copyright:   (C) 2017, The University of Kansas
 License:     BSD-style (see the file LICENSE)
 Maintainer:  Justin Dawson (jdawson@ku.edu)
@@ -13,7 +13,7 @@ Stability:   Alpha
 Portability: GHC
 -}
 
-module Control.Remote.Haxl.Packet.Weak where
+module Control.Remote.Packet.Weak where
 
 -- | A Weak Packet, that can encode a command or a procedure.
 

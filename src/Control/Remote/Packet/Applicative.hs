@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeOperators #-}
 
 {-|
-Module:      Control.Remote.Haxl.Packet.Applicative
+Module:      Control.Remote.Packet.Applicative
 Copyright:   (C) 2017, The University of Kansas
 License:     BSD-style (see the file LICENSE)
 Maintainer:  Justin Dawson (jdawson@ku.edu)
@@ -13,7 +13,7 @@ Stability:   Alpha
 Portability: GHC
 -}
 
-module Control.Remote.Haxl.Packet.Applicative
+module Control.Remote.Packet.Applicative
   ( -- * The remote applicative
     ApplicativePacket(..)
   ) where

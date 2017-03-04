@@ -27,12 +27,13 @@ module Control.Remote.Haxl
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Strict
 
-import qualified Control.Remote.Haxl.Applicative as A
-import           Control.Remote.Haxl.Packet.Applicative as A
-import           Control.Remote.Haxl.Packet.Weak as Weak
+import qualified Control.Remote.Applicative as A
+import           Control.Remote.Packet.Applicative as A
+import           Control.Remote.Packet.Weak as Weak
 import           Control.Remote.Haxl.Types as T
 import           Control.Applicative
 
+import Control.Remote.Applicative.Types as T
 import Control.Monad
 import Control.Natural
 import Debug.Trace

@@ -13,7 +13,7 @@ Stability:   Alpha
 Portability: GHC
 -}
 
-module Control.Remote.Haxl.Applicative
+module Control.Remote.Applicative
   ( -- * The remote applicative
     RemoteHaxlApplicative
     -- * The primitive lift functions
@@ -30,10 +30,10 @@ import Control.Monad.Trans.State.Strict
 import Control.Monad.Identity
 import Control.Category ((>>>))
 
-import           Control.Remote.Haxl.Packet.Applicative as A
-import qualified Control.Remote.Haxl.Packet.Weak as Weak
-import           Control.Remote.Haxl.Packet.Weak (WeakPacket)
-import           Control.Remote.Haxl.Types as T
+import           Control.Remote.Packet.Applicative as A
+import qualified Control.Remote.Packet.Weak as Weak
+import           Control.Remote.Packet.Weak (WeakPacket)
+import           Control.Remote.Applicative.Types as T
 import           Control.Natural
 import           Control.Applicative
 

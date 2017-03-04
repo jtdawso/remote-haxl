@@ -15,7 +15,6 @@ Portability: GHC
 
 module Control.Remote.Haxl.Types 
   ( RemoteHaxlMonad(..)
-  , RemoteHaxlApplicative(..)
   , RemoteHaxlMonad
   ) where
 
@@ -24,6 +23,7 @@ import            Control.Natural
 import            Control.Applicative
 import            Data.Typeable
 import            Control.Monad.Trans.Class
+import            Control.Remote.Applicative.Types
 
 -- | 'RemoteHaxlMonad' is our monad that can be executed in a remote location.
 data RemoteHaxlMonad  (q :: * -> *) a where
@@ -43,16 +43,3 @@ instance Monad (RemoteHaxlMonad q) where
   return      = pure
   m >>= k     = Bind m k
   m1 >> m2    = m1 *> m2 -- This improves our bundling opportunities
-
--- | 'RemoteHaxlApplicative' is our applicative that can be executed in a remote location.
-data RemoteHaxlApplicative (q:: * -> *) a where 
-   Query :: q a -> RemoteHaxlApplicative q a
-   Ap        :: RemoteHaxlApplicative q (a -> b) -> RemoteHaxlApplicative q a -> RemoteHaxlApplicative q b
-   Pure      :: a   -> RemoteHaxlApplicative q a  
-
-instance Functor (RemoteHaxlApplicative q) where
-  fmap f g = pure f <*> g
-
-instance Applicative (RemoteHaxlApplicative q) where   -- may need m to be restricted to Monad here
-  pure a = Pure a
-  (<*>) = Ap

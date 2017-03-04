@@ -20,13 +20,14 @@ source-repository head
 
 library
   exposed-modules:
-                       Control.Remote.Haxl.Packet.Applicative
-                       Control.Remote.Haxl.Packet.Weak
-                       Control.Remote.Haxl.Packet
-                       Control.Remote.Haxl.Applicative
+                       Control.Remote.Packet.Applicative
+                       Control.Remote.Packet.Weak
+                       Control.Remote.Packet
+                       Control.Remote.Applicative
                        Control.Remote.Haxl
   other-modules:
                        Control.Remote.Haxl.Types
+                       Control.Remote.Applicative.Types
   other-extensions:    GADTs, RankNTypes, ScopedTypeVariables
   build-depends:       base >=4.7 && < 5
                      , exceptions             >= 0.8 && < 0.9
